@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import axios from 'axios';
+import { Pokemon } from './pokemon.interface';
 
 @Injectable()
 export class PokemonService {
@@ -20,8 +21,8 @@ export class PokemonService {
     return pokemon;
   }
 
-  getCapturedPokemons() {
-    return this.capturedPokemons;
+  async getCapturedPokemons(): Promise<Pokemon[]> {
+    return this.capturedPokemons.filter(pokemon => pokemon.captured);
   }
 
   releasePokemon(id: number) {

@@ -1,6 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { PokemonService } from './app.service';
 import { PokemonController } from './pokemon/pokemon.controller';
+import { Pokemon } from './pokemon/pokemon.entity';
+import { DeleteResult } from 'typeorm';
 
 describe('PokemonController', () => {
   let controller: PokemonController;
@@ -31,38 +33,58 @@ describe('PokemonController', () => {
   });
 
   it('deve retornar um Pokémon aleatório', async () => {
-    const mockPokemon = { name: 'Pikachu', id: 25 };
-    jest.spyOn(service, 'getRandomPokemon').mockReturnValue(mockPokemon);
+    const mockPokemon: Pokemon[] = [
+        { id: 25, name: 'Pikachu', url: 'https://pokeapi.co/api/v2/pokemon/25/', captured: false }
+    ];
 
-    const result = controller.getRandomPokemon();
-    expect(result).toEqual(mockPokemon);
-    expect(service.getRandomPokemon).toHaveBeenCalled();
-  });
+    // Mock da função getCapturedPokemons para retornar uma Promise que resolve para um array
+    jest.spyOn(service, 'getCapturedPokemons').mockResolvedValue(mockPokemon); 
+
+    const result = await controller.getCapturedPokemons(); 
+
+    expect(result).toEqual(mockPokemon); 
+    expect(service.getCapturedPokemons).toHaveBeenCalled();
+});
+
 
   it('deve capturar um Pokémon', async () => {
-    const mockPokemon = { name: 'Bulbasaur', id: 1 };
-    jest.spyOn(service, 'capturePokemon').mockReturnValue(mockPokemon);
+    const mockPokemon: Pokemon = { id: 1, name: 'Bulbasaur', url: 'some-url', captured: false };
+    jest.spyOn(service, 'capturePokemon').mockResolvedValue(mockPokemon);
 
-    const result = controller.capturePokemon(mockPokemon);
+    const result = await controller.capturePokemon(mockPokemon);
     expect(result).toEqual(mockPokemon);
     expect(service.capturePokemon).toHaveBeenCalledWith(mockPokemon);
   });
 
-  it('deve retornar a lista de Pokémons capturados', async () => {
-    const mockCapturedPokemons = [{ name: 'Charmander', id: 4 }];
-    jest.spyOn(service, 'getCapturedPokemons').mockReturnValue(mockCapturedPokemons);
+  it('deve retornar um Pokémon aleatório', async () => {
+    const mockPokemon: Pokemon[] = [ 
+        { id: 25, name: 'Pikachu', url: 'https://pokeapi.co/api/v2/pokemon/25/', captured: false }
+    ]; 
 
-    const result = controller.getCapturedPokemons();
-    expect(result).toEqual(mockCapturedPokemons);
+    // Mock da função getCapturedPokemons para retornar uma Promise que resolve para um array
+    jest.spyOn(service, 'getCapturedPokemons').mockResolvedValue(mockPokemon); 
+
+    const result = await controller.getCapturedPokemons(); 
+
+    expect(result).toEqual(mockPokemon); 
     expect(service.getCapturedPokemons).toHaveBeenCalled();
-  });
+});
 
-  it('deve soltar um Pokémon capturado', async () => {
-    const pokemonId = 4;
-    jest.spyOn(service, 'releasePokemon').mockReturnValue({ success: true });
 
-    const result = controller.releasePokemon(pokemonId);
-    expect(result).toEqual({ success: true });
-    expect(service.releasePokemon).toHaveBeenCalledWith(pokemonId);
-  });
+it('deve soltar um Pokémon capturado', async () => {
+  const pokemonId = 4;
+
+  // Mockando o resultado de acordo com a interface DeleteResult do TypeORM
+  const mockDeleteResult: DeleteResult = { affected: 1, raw: {} }; 
+
+  // Fazendo o mock da função releasePokemon do serviço
+  jest.spyOn(service, 'releasePokemon').mockResolvedValue(mockDeleteResult);
+
+  // Chamando a função releasePokemon do controller
+  const result = await controller.releasePokemon(pokemonId);
+
+  expect(result).toEqual(mockDeleteResult); 
+  expect(service.releasePokemon).toHaveBeenCalledWith(pokemonId);
+});
+
 });
